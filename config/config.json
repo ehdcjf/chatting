@@ -1,9 +1,9 @@
 {
   "development": {
     "username": "root",
-    "password": "sksskdia",
+    "password": "1234",
     "database": "users",
-    "port": 3300,
+    
     "host": "127.0.0.1",
     "dialect": "mysql"
   },

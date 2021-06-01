@@ -22,5 +22,13 @@
     "sequelize-cli": "^6.2.0"
   },
   "devDependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Naseongmin07/token.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Naseongmin07/token/issues"
+  },
+  "homepage": "https://github.com/Naseongmin07/token#readme",
   "description": ""
 }
