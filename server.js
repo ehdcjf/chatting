@@ -7,6 +7,11 @@ const nunjucks = require('nunjucks')
 const bodyParser = require('body-parser')
 const auth = require('./middleware/auth')
 const { sequelize, User } = require('./models')
+//소켓 셋팅 마지막에 app.listen 을  server.listen으로 변경 
+const socket = require('socket.io'); 
+const http = require('http'); 
+const server = http.createServer(app); 
+const io = socket(server); 
 
 
 app.set('view engine', 'html')
@@ -14,12 +19,12 @@ app.set('view engine', 'html')
 app.use(express.static('public'));
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: false }))
+app.use(cookieParser());
 
 nunjucks.configure('views', {
     express: app,
 })
 
-app.use(cookieParser());
 
 sequelize.sync({ force: false })
     .then(() => { // resolve
@@ -92,11 +97,45 @@ app.post('/auth/local/login', async (req, res) => {
     res.json(result)
 })
 
-app.get('/chat', (req, res) => {
+app.get('/chat',auth, (req, res) => {
+    
     res.render('chat.html');
+});
+
+app.get('/getmyid',auth,(req,res)=>{
+    res.json(req.userid) 
+})
+
+//소켓 서버에서 받는 부분. 
+let id=undefined; 
+io.sockets.on("connection", socket=>{ 
+    // console.log(socket.handshake.headers.cookie);
+    
+    let cookieStr = socket.handshake.headers.cookie;
+    if(cookieStr!==undefined){
+        let cookieArr =  cookieStr.split(';'); 
+        cookieArr.forEach(v=>{ 
+            let [name,value] = v.split('='); 
+            //trim은 공백을 제거하는 메서드.. 
+            //replace 교체
+            if(name == 'AccessToken'){ 
+                let jwt = value.split('.'); 
+                //console.log(jwt[1]); 
+                let payload = Buffer.from(jwt[1],'base64').toString()
+                let {userid} = JSON.parse(payload); 
+                id = userid;
+            }  
+        })
+    }
+   
+    console.log(id); 
+    socket.on('send',datas=>{ 
+        console.log(datas); 
+        socket.broadcast.emit('msg',datas)
+    })
 })
 
 
-app.listen(3000, () => {
+server.listen(3000, () => {
     console.log('server start port: 3000');
 })
